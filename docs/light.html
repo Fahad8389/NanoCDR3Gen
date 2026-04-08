@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Playing around with nanobody design, and ending up with NanoCDR3Gen</title>
+<style>
+:root {
+  --accent: #709e61;
+  --accent-dark: #5a8150;
+  --text: #1a1a1a;
+  --text-muted: #555;
+  --border: #e5e5e5;
+  --bg: #ffffff;
+  --code-bg: #f6f8fa;
+  --table-alt: #fafafa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+               Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.7;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 60px 24px 80px;
+}
+
+/* Header block */
+.post-header {
+  margin-bottom: 48px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+h1.post-title {
+  font-size: 38px;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: var(--text);
+}
+
+.post-meta {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.post-meta .author {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Body typography */
+.post-body {
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+.post-body p {
+  margin: 0 0 20px 0;
+}
+
+.post-body h2 {
+  font-size: 28px;
+  line-height: 1.3;
+  letter-spacing: -0.2px;
+  margin: 56px 0 20px 0;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.post-body h3 {
+  font-size: 22px;
+  line-height: 1.35;
+  margin: 40px 0 16px 0;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.post-body h4 {
+  font-size: 18px;
+  margin: 32px 0 12px 0;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Links */
+.post-body a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(112, 158, 97, 0.35);
+  transition: border-bottom-color 0.15s ease;
+}
+
+.post-body a:hover {
+  border-bottom-color: var(--accent);
+}
+
+/* Strong / emphasis */
+.post-body strong {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.post-body em {
+  font-style: italic;
+}
+
+/* Lists */
+.post-body ul, .post-body ol {
+  margin: 0 0 20px 0;
+  padding-left: 28px;
+}
+
+.post-body li {
+  margin: 0 0 8px 0;
+}
+
+/* Tables */
+.post-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24px 0 28px 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.post-body thead {
+  background: var(--code-bg);
+  border-top: 2px solid var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+.post-body th {
+  text-align: left;
+  padding: 10px 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.post-body td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.post-body tbody tr:nth-child(even) {
+  background: var(--table-alt);
+}
+
+.post-body table strong {
+  color: var(--accent-dark);
+}
+
+/* Code blocks */
+.post-body code {
+  font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas,
+               "Courier New", monospace;
+  font-size: 14px;
+  background: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #24292e;
+}
+
+.post-body pre {
+  background: var(--code-bg);
+  border-radius: 6px;
+  padding: 16px 20px;
+  overflow-x: auto;
+  margin: 20px 0 24px 0;
+  border: 1px solid var(--border);
+}
+
+.post-body pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #24292e;
+}
+
+/* Blockquote */
+.post-body blockquote {
+  margin: 20px 0;
+  padding: 4px 0 4px 20px;
+  border-left: 3px solid var(--accent);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Horizontal rule */
+.post-body hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 48px 0;
+}
+
+/* Footnotes */
+.footnotes {
+  margin-top: 60px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.footnotes ol {
+  padding-left: 20px;
+}
+
+.footnotes li {
+  margin-bottom: 10px;
+}
+
+sup a {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 2px;
+  border: none;
+}
+
+/* Repo CTA block */
+.repo-cta {
+  margin: 40px 0;
+  padding: 24px 28px;
+  background: var(--code-bg);
+  border-radius: 8px;
+  border-left: 4px solid var(--accent);
+}
+
+.repo-cta p {
+  margin: 0 0 10px 0;
+  font-size: 15px;
+}
+
+.repo-cta p:last-child {
+  margin-bottom: 0;
+}
+
+.repo-cta a {
+  font-weight: 600;
+}
+
+/* Print / PDF styles */
+@page {
+  size: A4;
+  margin: 0;
+}
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  body {
+    font-size: 11pt;
+    line-height: 1.6;
+  }
+  .container {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0.6in 0.9in !important;
+    box-sizing: border-box !important;
+  }
+  .post-body {
+    max-width: none !important;
+    width: 100% !important;
+  }
+  .post-body p, .post-body ul, .post-body ol, .post-body h2, .post-body h3 {
+    max-width: none !important;
+  }
+  .post-body table {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  h1.post-title {
+    font-size: 26pt;
+  }
+  .post-body h2 {
+    font-size: 18pt;
+    margin-top: 28pt;
+    page-break-after: avoid;
+  }
+  .post-body h3 {
+    font-size: 14pt;
+    page-break-after: avoid;
+  }
+  .post-body table {
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  .post-body pre {
+    page-break-inside: avoid;
+  }
+  .post-body a {
+    color: var(--accent-dark);
+    border-bottom: none;
+  }
+  .post-body p, .post-body li {
+    orphans: 3;
+    widows: 3;
+  }
+  .repo-cta {
+    page-break-inside: avoid;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header class="post-header">
+    <h1 class="post-title">Playing around with nanobody design, and ending up with NanoCDR3Gen</h1>
+    <p class="post-meta"><span class="author">Fahad Alotaibi</span> &nbsp;·&nbsp; April 2026</p>
+  </header>
+
+  <article class="post-body">
+
+    <p>Designing nanobodies is an interesting part of the protein design field. I will be honest, I am biased to it more than other fields like antibodies or minibinders. Maybe the reason is I like how selective nanobodies and antibodies can be compared to other proteins. But the antibody field already has many generative models and approved drugs, while nanobodies are shorter in length and still have a lot of untapped potential. So I decided to play around, and this is what it ended up being.</p>
+
+    <p>NanoCDR3Gen is a nanobody design pipeline I built on top of Mosaic (escalante-bio's open-source backprop design framework), using a humanized VH3 hybrid framework with IMGT-corrected CDR masks (IMGT being the standard antibody numbering scheme). The core question I wanted to answer: <strong>given a small compute budget, can I land in the same range as the published state of the art on de novo nanobody design while giving attention to nativeness and solubility, to reach good therapeutic candidates and not only binders?</strong></p>
+
+    <p>Three experiments pressure-tested the pipeline.</p>
+
+    <ol>
+      <li><strong>AbLang weight, 0.1 vs 0.3.</strong> A paired 103-design study. Means barely move, but the hit rate at the tail lifts 3.5× for 0.3 on AF3 binding (AlphaFold 3 interface predicted TM-score, the field-standard binding confidence metric), 1.8× on independent nativeness (ABN2), and 1.3× on solubility (CamSol) as a free side effect. 0.3 locked as the new default.</li>
+      <li><strong>CDR1 fixing.</strong> Locked CDR1 to a cropped camelid germline to close the nativeness gap. Binding collapsed by -0.25 mean AF3 iPTM, all four tested targets crashed. Rejected. CDR1 is load-bearing on hard targets.</li>
+      <li><strong>Benchmarking against published pipelines.</strong> On PD-L1, 33% AF3 ≥0.80 from 30 designs vs mBER's ~40% (best hotspot, strict filter) from libraries of 2,600-7,900 designs per target. On RSV F (different epitope from RFantibody but same protein and tool class), 27% from 15 designs vs RFantibody's 9,000-design library yielding a best experimental Kd of 1.4 μM. Two separate, honest comparisons; not a head-to-head on the same epitope.</li>
+    </ol>
+
+    <div class="repo-cta">
+      <p>Code and repo: <a href="https://github.com/Fahad8389/nanocdr3gen">github.com/Fahad8389/nanocdr3gen</a></p>
+      <p>All numbers are in-silico AlphaFold / ABN2 / CamSol predictions. No wet-lab validation yet.</p>
+    </div>
+
+    <h2>1. AbLang weight, 0.1 vs 0.3</h2>
+
+    <p>AbLang is an antibody language model. Its pseudolikelihood in the loss pushes designs toward sequences that look like the antibodies it was trained on. <strong>Important caveat up front:</strong> AbLang's heavy-chain model is trained on conventional antibody VH sequences, not specifically on camelid VHHs. Nanobody VHH domains are homologous to VH (same fold, VH3 family, shared framework pattern) so the signal transfers, but the model is not VHH-native. I validated every design with AbNatiV2 (a VHH-specific nativeness model), so any AbLang-driven signal gets a second independent check on the correct scale.</p>
+
+    <p>The Mosaic default weight was 0.1. In my prior NanoCDR3Gen runs on RBX1 (the E3 ligase target of the GEM x Adaptyv 2026 binder competition), the ABN2 nativeness mean was 0.666 and only 17% of designs cleared ≥0.70. Fine for a competition. Not fine for therapeutic intent.</p>
+
+    <p>I could not afford a full parameter sweep, so I ran the cheapest test that could falsify the hypothesis: one paired A/B, 0.1 vs 0.3, matched targets, matched CDR3 lengths, matched counts. 103 designs total (48 at 0.1, 55 at 0.3), scored on AF3 iPTM, AbNatiV2, and CamSol.</p>
+
+    <h3>Means barely moved</h3>
+
+    <table>
+      <thead>
+        <tr><th>Metric</th><th>0.1</th><th>0.3</th><th>Δ</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>AF3 iPTM</td><td>0.293</td><td>0.337</td><td>+0.044</td></tr>
+        <tr><td>ABN2 overall</td><td>0.660</td><td>0.672</td><td>+0.012</td></tr>
+        <tr><td>CamSol</td><td>0.637</td><td>0.720</td><td>+0.083</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Hit rate at the tail lifted on every axis</h3>
+
+    <table>
+      <thead>
+        <tr><th>Threshold</th><th>0.1</th><th>0.3</th><th>Lift</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>AF3 ≥ 0.80</td><td>1/48 (2%)</td><td><strong>4/55 (7%)</strong></td><td><strong>3.5×</strong></td></tr>
+        <tr><td>ABN2 ≥ 0.70</td><td>4/48 (8%)</td><td><strong>7/47 (15%)</strong></td><td><strong>1.8×</strong></td></tr>
+        <tr><td>CamSol ≥ +0.5</td><td>28/48 (58%)</td><td><strong>36/47 (77%)</strong></td><td><strong>1.3×</strong></td></tr>
+      </tbody>
+    </table>
+
+    <p><em>Note on the denominators:</em> AF3 was scored on all 103 designs, but ABN2 and CamSol denominators drop to 47 in the 0.3 column because I lost the FASTA sequences for 8 designs from early COVID runs. The 47/47 paired subset is what the ABN2 and CamSol rows above use.</p>
+
+    <p>The decision to lock 0.3 was made on hit rate at the tail, not means. 4 usable binders vs 1 at the AF3 ≥ 0.80 threshold, and AbNatiV2 (the independent VHH-specific nativeness model, not AbLang) agreed directionally with a 1.8× lift. Solubility came along for free.</p>
+
+    <p>The CamSol lift was the interesting surprise. I pushed AbLang for nativeness, not solubility. Pushing AbLang pulls sequences closer to the conventional antibody VH distribution it was trained on, and those patterns happen to avoid hydrophobic patches. VHHs share the VH framework, so the effect transfers, and CamSol (which is sequence-based and not antibody-specific at all) confirmed it on a fully independent scale. I got a small nativeness bump (+0.012 mean on ABN2 VHH2) and a noticeably larger solubility bump (+0.083 on CamSol) from one weight change.</p>
+
+    <h2>2. CDR1 fixing</h2>
+
+    <p>Data from the prior RBX1 NanoCDR3Gen runs showed CDR1 was the weakest nativeness region by a large margin: ABN2 mean around 0.23, versus framework ~0.88 and CDR2 ~0.45. The hypothesis was that locking CDR1 to a real camelid germline would close the nativeness gap for free, since CDR1 is usually described as peripheral to the paratope.</p>
+
+    <p>I locked CDR1 to <code>GRTFSSY</code>, a 7 aa crop of the IGHV3-3 kinked germline <code>GRTFSSYA</code>, and ran it against four targets at AbLang 0.3. 16 designs vs 9 free-CDR1 baseline designs under matched conditions.</p>
+
+    <table>
+      <thead>
+        <tr><th>Metric</th><th>Free baseline (n=9)</th><th>CDR1 fix (n=16)</th><th>Δ</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>AF3 iPTM</td><td>0.512</td><td><strong>0.259</strong></td><td><strong>-0.254</strong></td></tr>
+        <tr><td>ABN2 overall</td><td>0.669</td><td>0.674</td><td>+0.004</td></tr>
+        <tr><td>ABN2 CDR1 region</td><td>0.234</td><td>0.296</td><td>+0.062</td></tr>
+        <tr><td>CamSol</td><td>+0.668</td><td>+0.692</td><td>+0.024</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Binding collapsed. Every target crashed.</strong> The two targets that previously had AF3 hits ≥0.80 lost them entirely. The nativeness gain was tiny (+0.004 overall, +0.062 on the CDR1 region only), solubility did not move.</p>
+
+    <p>The conventional wisdom ("CDR3 does the binding, CDR1/CDR2 stabilize geometry") is not what the data show for de novo design. When I took CDR1 away from the optimizer, CDR2 and CDR3 could not compensate. The easiest target degraded least, the hardest targets crashed the most. Free CDR1 stays as the default.</p>
+
+    <p>One honest caveat: <code>GRTFSSY</code> is a 7 aa crop of the real 8 aa germline, shortened to fit the existing CDR1 mask. The stronger claim "CDR1 fixing is categorically bad" requires the full 8 aa test on an expanded mask, which I have not run. The correct claim is: this version of CDR1 fixing, on these targets, crashed binding.</p>
+
+    <h2>3. Benchmarking against published pipelines</h2>
+
+    <p>Two natural reference points: <strong>mBER</strong> (Manifold Bio, bioRxiv 2025) and <strong>RFantibody</strong> (Bennett et al., Nature 2025). Both pipelines operate at hundreds of times my design volume per target, then filter aggressively with AlphaFold-family models before any wet-lab work. They tested different targets, so I can only compare like-for-like in two separate places.</p>
+
+    <h3>PD-L1, vs mBER</h3>
+
+    <p>mBER's flagship demo target is PD-L1. They generated libraries of ~2,600 to 7,900 VHHs per target and reported ~40% AF-Multimer iPTM pass rate on the best PD-L1 hotspot under strict filtering. I ran 30 designs at AbLang 0.3, CDR3 lengths 14 and 16, no per-target tuning. Best AF3 iPTM 0.870, ABN2 mean 0.679, CamSol mean 0.804.</p>
+
+    <table>
+      <thead>
+        <tr><th>Pipeline</th><th>Designs per target</th><th>AF iPTM ≥ 0.80</th><th>Wet-lab</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>mBER</td><td>~2,600-7,900</td><td>~40% (best hotspot)</td><td>Yes (yeast display)</td></tr>
+        <tr><td><strong>NanoCDR3Gen</strong></td><td><strong>30</strong></td><td><strong>33% (10/30)</strong></td><td>Not yet</td></tr>
+      </tbody>
+    </table>
+
+    <p>Same target, same threshold. I land in the same range as mBER's strict-filter pass rate with roughly 100× fewer designs. Not better, not worse on the in-silico number; just a different tradeoff between library scale and per-design cost.</p>
+
+    <h3>RSV F, vs RFantibody</h3>
+
+    <p>RFantibody never tested PD-L1. Their experimental VHH targets were influenza HA, RSV F sites I and III, SARS-CoV-2 RBD, C. difficile TcdB, and IL-7Rα. The closest overlap with my work is RSV F: same protein, different epitope. They targeted sites I and III. I ran the apex antigenic site (the epitope used by a licensed antibody drug). Not the same epitope, so this is a comparison between two pipelines on the same protein, not a head-to-head benchmark on the same site.</p>
+
+    <table>
+      <thead>
+        <tr><th>Pipeline</th><th>RSV F epitope</th><th>Designs per target</th><th>Best result</th><th>Wet-lab</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>RFantibody</td><td>Sites I and III</td><td>9,000 (yeast display screen)</td><td>1.4 μM Kd (best SPR, site III)</td><td>Yes</td></tr>
+        <tr><td><strong>NanoCDR3Gen</strong></td><td>Apex antigenic site</td><td><strong>15</strong></td><td><strong>27% AF3 ≥ 0.80</strong> (4/15), best 0.840</td><td>Not yet</td></tr>
+      </tbody>
+    </table>
+
+    <p>Two honest data points to keep in mind when reading this row. First, RFantibody used wet-lab validation, I did not, so their "1.4 μM" is real and my "27%" is an AlphaFold prediction. Second, the epitopes are not the same, so absolute hit rates are not directly comparable. The fair takeaway is just that the same family of tools can produce in-silico-promising RSV F binders at very different design volumes, and that wet-lab is the only thing that closes the gap between "promising" and "real".</p>
+
+    <p>One side note worth flagging on RSV: the apex run replaced an earlier attempt on a different RSV F epitope (a flat helical surface) that produced 0/24 hits. Switching to the drug-like concave site lifted the rate from 0% to 27% with the same tool at the same weight. That is one data point, not a generalizable law, but it suggests epitope choice may matter as much as parameter tuning at this stage of the pipeline.</p>
+
+    <h2>Honest caveats</h2>
+
+    <ul>
+      <li><strong>No wet-lab validation.</strong> Every number on this page is an AF3, AbNatiV2, or CamSol prediction. The single biggest caveat. Published pipelines have experimental data; I do not yet.</li>
+      <li><strong>AbLang is trained on conventional antibodies, not specifically on nanobodies.</strong> VHHs are homologous to VH so the signal transfers directionally, and AbNatiV2 VHH2 (a VHH-specific model) confirms it on an independent scale, but a dedicated VHH language model would be the more appropriate choice and might shift the optimum weight.</li>
+      <li><strong>Only two AbLang weights tested.</strong> 0.3 is the better of two points, not a proven optimum.</li>
+      <li><strong>Small n per target.</strong> 6-30 designs per condition. Per-target effects are inside run noise on the paired weight study.</li>
+      <li><strong>Hit counts at ≥0.80 are small in absolute terms.</strong> The headline 3.5× lift is 4 hits vs 1 hit.</li>
+      <li><strong>CDR1 fix used a cropped germline</strong>, not the real 8 aa.</li>
+      <li><strong>Only one framework tested.</strong></li>
+      <li><strong>Cross-project comparison mixes target difficulty.</strong> The cleanest claims come from the paired subset where targets are matched.</li>
+    </ul>
+
+    <h2>What's next</h2>
+
+    <ul>
+      <li><strong>SPR on the top candidates.</strong> The only experiment that would turn predictions into real candidates.</li>
+      <li><strong>Proper AbLang sweep:</strong> 0.1 / 0.2 / 0.3 / 0.5 / 0.7 / 1.0 with 20+ designs per weight.</li>
+      <li><strong>Dedicated VHH language model</strong> in place of heavy-chain AbLang, to test whether the weight optimum shifts when the loss is actually VHH-native.</li>
+      <li><strong>CDR3 length sweep done properly</strong>, not the 12-18 band I settled on.</li>
+      <li><strong>Selectivity panel</strong>, all designs against all targets, to catch cross-reactivity.</li>
+      <li><strong>Another humanized framework</strong>, clinically validated scaffold as a drop-in.</li>
+      <li><strong>Stability study with NanoMelt</strong> (a VHH thermal stability predictor) on the top candidates.</li>
+      <li><strong>More runs, bigger batches, tighter hit-rate estimates.</strong></li>
+    </ul>
+
+    <p>If you work in nanobody design, AI for protein engineering, or therapeutic antibody optimization, I would like to talk. Reach me at <a href="mailto:F.A.B.Alotaibi@gmail.com">F.A.B.Alotaibi@gmail.com</a> or on <a href="https://www.linkedin.com/in/fahad838">LinkedIn</a>. Code, license, and worked examples are on the repo.</p>
+
+    <div class="repo-cta">
+      <p>Repo: <a href="https://github.com/Fahad8389/nanocdr3gen">github.com/Fahad8389/nanocdr3gen</a></p>
+    </div>
+
+  </article>
+
+</div>
+
+</body>
+</html>
