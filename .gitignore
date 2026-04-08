@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# Results, user outputs
+results_*.json
+results_*.csv
+*.log
+af3_results/
+af3_inputs/
+scores/
+camsol_raw/
+
+# User target PDBs (everything in pdbs/ except the placeholder)
+pdbs/*
+!pdbs/.gitkeep
+!pdbs/README.md
+
+# macOS / editors
+.DS_Store
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Modal
+.modal/
+modal.toml
+.modal.toml
