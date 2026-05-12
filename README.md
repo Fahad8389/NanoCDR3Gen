@@ -1,8 +1,55 @@
 # NanoCDR3Gen
 
-A minimal, single-file pipeline for de novo VHH (nanobody) design against a user-specified target, built on [escalante-bio/mosaic](https://github.com/escalante-bio/mosaic) and designed to run on [Modal](https://modal.com) A100 GPUs.
+A minimal, single-file pipeline for de novo VHH (nanobody) design against a user-specified target, built on [escalante-bio/mosaic](https://github.com/escalante-bio/mosaic) and designed to run on [Modal](https://modal.com) A100 / H200 GPUs.
 
-NanoCDR3Gen optimizes CDR1, CDR2, and CDR3 positions on a humanized VH3 hybrid framework via backpropagation through [Protenix](https://github.com/bytedance/Protenix), with AbLang and ESM-C pseudolikelihoods biasing sequences toward natural antibody patterns.
+NanoCDR3Gen optimizes CDR1, CDR2, and CDR3 positions on a real **h-NbBCII10** humanized VH3 scaffold via backpropagation through [Protenix](https://github.com/bytedance/Protenix), with AbLang, ESM-C, **AbNatiV2 per-region nativeness**, and **OmniLib fold stability** signals biasing sequences toward natural, foldable antibody patterns.
+
+---
+
+## Latest update
+
+The pipeline has been substantially upgraded since the initial release. The current entry point is `current_version/nanocdr3gen_v2_run007_omnifold.py`. The original single-file release (`nanocdr3gen.py`) still works and is preserved unchanged.
+
+### What's new vs the initial release
+
+| Component | Before update | Now |
+|---|---|---|
+| Structure scorer | Protenix v1, global paratope | Protenix v2, CDR3-only paratope |
+| Antibody LM | AbLang v1 (heavy-only) | AbLang v2 paired |
+| Nativeness signal | post-score only (AbNatiV2) | **AbNatiV2 per-region in-loop loss** |
+| Fold stability | not measured | **OmniLib fold CNN in-loop loss** (Wan *et al.*, *Nat. Struct. Mol. Biol.* 2026) |
+| Architecture | single-stage soft + MCMC | adds hot-spot redesign with accept/revert |
+
+### Latest results — PD-L1 (n=6 designs, single batch, May 2026)
+
+| Metric | mean | best | hit-rate |
+|---|---|---|---|
+| Protenix iPTM | 0.868 | 0.926 | 5/6 ≥ 0.85 |
+| AbNatiV2 V2 overall | +0.588 | +0.609 | — |
+| OmniLib fold P(high stability) | **0.808** | **0.928** | 5/6 ≥ 0.75 |
+
+Best single design (d01): iPTM 0.926, V2 +0.609, fold 0.858. First design in the corpus hitting iPTM ≥ 0.92 AND predicted-fold ≥ 0.85 together.
+
+Direct A/B vs the v0.1-equivalent baseline (same framework, no in-loop nativeness, no in-loop fold, n=6):
+
+| Metric | Before update | Now | Δ |
+|---|---|---|---|
+| iPTM mean | 0.729 | 0.868 | **+0.14** |
+| iPTM ≥ 0.85 | 33% (2/6) | 83% (5/6) | +50pp |
+| Fold P(high) mean | 0.504 | 0.808 | **+0.30** |
+| Fold ≥ 0.75 | 17% (1/6) | 83% (5/6) | +66pp |
+
+Run with:
+
+```bash
+modal run --detach current_version/nanocdr3gen_v2_run007_omnifold.py
+```
+
+---
+
+## Initial release — `nanocdr3gen.py` (before update)
+
+The sections below describe the original single-file release. Everything from "Why this exists" to "Disclaimer" reflects the pipeline as published in v0.1 (April 2026); numbers and methodology in those sections are from that snapshot and have not been edited. For the current pipeline see "Latest update" above.
 
 ## Why this exists
 
