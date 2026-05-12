@@ -2,7 +2,7 @@
 
 A minimal, single-file pipeline for de novo VHH (nanobody) design against a user-specified target, built on [escalante-bio/mosaic](https://github.com/escalante-bio/mosaic) and designed to run on [Modal](https://modal.com) A100 / H200 GPUs.
 
-NanoCDR3Gen optimizes CDR1, CDR2, and CDR3 positions on a real **h-NbBCII10** humanized VH3 scaffold via backpropagation through [Protenix](https://github.com/bytedance/Protenix), with AbLang, ESM-C, **AbNatiV2 per-region nativeness**, and **OmniLib fold stability** signals biasing sequences toward natural, foldable antibody patterns.
+NanoCDR3Gen optimizes CDR1, CDR2, and CDR3 positions on a real **h-NbBCII10** humanized VH3 scaffold via backpropagation through [Protenix v2](https://github.com/bytedance/Protenix), with [AbLang2](https://github.com/oxpig/AbLang2), [ESM-C](https://github.com/evolutionaryscale/esm), [AbNatiV2](https://gitlab.developers.cam.ac.uk/ch/sormanni/abnativ) per-region nativeness, and [OmniLib fold-stability CNN](https://github.com/antoinekoehl/omnilib-ml) signals biasing sequences toward natural, foldable antibody patterns.
 
 ---
 
@@ -14,35 +14,39 @@ The pipeline has been substantially upgraded since the initial release. The curr
 
 | Component | Before update | Now |
 |---|---|---|
+| Framework | humanized VH3 hybrid (CDR1=7, CDR2=7) | **real h-NbBCII10** (Vincke 2009, PDB 3EAK; full IMGT lengths CDR1=11, CDR2=8) |
 | Structure scorer | Protenix v1, global paratope | Protenix v2, CDR3-only paratope |
-| Antibody LM | AbLang v1 (heavy-only) | AbLang v2 paired |
+| Antibody LM | AbLang v1 (heavy-only) | AbLang2 paired |
 | Nativeness signal | post-score only (AbNatiV2) | **AbNatiV2 per-region in-loop loss** |
-| Fold stability | not measured | **OmniLib fold CNN in-loop loss** (Wan *et al.*, *Nat. Struct. Mol. Biol.* 2026) |
+| Fold stability | not measured | **OmniLib fold-stability CNN in-loop loss** (Wan *et al.*, *Nat. Struct. Mol. Biol.* 2026) |
 | Architecture | single-stage soft + MCMC | adds hot-spot redesign with accept/revert |
 
-### Latest results — PD-L1 (n=6 designs, single batch, May 2026)
+### Latest results — PD-L1 (n=10 designs, exploratory batch, May 2026)
 
-| Metric | mean | best | hit-rate |
+A small batch of 10 designs at three CDR3 lengths (12, 14, 16) was scored on four independent axes. This is a development-time snapshot, not a benchmark — CDR3 lengths and n were chosen for development cost, not to compete with library-scale pipelines.
+
+| Metric (scorer) | mean | best | hit-rate |
 |---|---|---|---|
-| Protenix iPTM | 0.868 | 0.926 | 5/6 ≥ 0.85 |
-| AbNatiV2 V2 overall | +0.588 | +0.609 | — |
-| OmniLib fold P(high stability) | **0.808** | **0.928** | 5/6 ≥ 0.75 |
+| Protenix v2 iPTM (design-time scorer) | 0.862 | 0.943 | 7/10 ≥ 0.85 |
+| **AF3 iPTM** (field-standard binding cross-validator, best-of-5-seeds) | 0.606 | 0.860 | 2/10 ≥ 0.80 |
+| AbNatiV2 overall (nativeness) | +0.589 | +0.634 | — |
+| OmniLib P(high stability) (fold) | 0.749 | 0.961 | 7/10 ≥ 0.75 |
 
-Best single design (d01): iPTM 0.926, V2 +0.609, fold 0.858. First design in the corpus hitting iPTM ≥ 0.92 AND predicted-fold ≥ 0.85 together.
+Per-CDR3-length breakdown:
 
-Direct A/B vs the v0.1-equivalent baseline (same framework, no in-loop nativeness, no in-loop fold, n=6):
+| CDR3 | n | Protenix v2 iPTM mean | AF3 iPTM mean | AbNatiV2 mean | OmniLib mean |
+|---|---|---|---|---|---|
+| 12 | 2 | 0.802 | 0.470 | +0.608 | 0.835 |
+| 14 | 6 | 0.868 | 0.587 | +0.588 | 0.808 |
+| 16 | 2 | 0.906 | 0.800 | +0.575 | 0.487 |
 
-| Metric | Before update | Now | Δ |
-|---|---|---|---|
-| iPTM mean | 0.729 | 0.868 | **+0.14** |
-| iPTM ≥ 0.85 | 33% (2/6) | 83% (5/6) | +50pp |
-| Fold P(high) mean | 0.504 | 0.808 | **+0.30** |
-| Fold ≥ 0.75 | 17% (1/6) | 83% (5/6) | +66pp |
+**Honest takeaway.** The update added two in-loop signals (per-region nativeness and fold stability) that did not exist in v0.1. The pipeline produces sequences with strong in-loop scores. AF3 cross-validation on this small batch shows the design-time Protenix v2 iPTM is consistently higher than the AF3 iPTM that AF3 returns for the same designs — a known disagreement on antibody-antigen interfaces. The two AF3 binders (AF3 iPTM ≥ 0.80) in this batch have low fold scores; the two best fold-scoring designs failed AF3 binding. No design in this batch is strong on all four axes simultaneously. Larger batches and per-axis weight calibration are the natural next steps.
 
 Run with:
 
 ```bash
 modal run --detach current_version/nanocdr3gen_v2_run007_omnifold.py
+modal run --detach current_version/nanocdr3gen_v2_run008_omnifold_cdr12_16.py
 ```
 
 ---
@@ -163,7 +167,7 @@ A final AF3 iPTM ≥ 0.80 is the field-standard cutoff for a confident predicted
 
 **Binding.** On concave druggable targets (PD-L1, RSV F apex), NanoCDR3Gen reached AF3 iPTM ≥ 0.80 hit rates of 25-35% from batches of 15-30 designs. On flat helical epitopes, the hit rate was 0%. **Epitope shape dominates every tunable in this pipeline** — it is the strongest single finding from all the experiments run during development.
 
-**Nativeness.** Every design is post-scored with AbNatiV2 VHH2. Under the default AbLang weight (0.3), designs reach ABN2 means of 0.66-0.70 across targets, with tail populations above 0.70 (a common "native-looking" threshold). This is noticeably better than running the same pipeline at AbLang weight 0.1, which is what many open-source defaults use.
+**Nativeness.** Every design is post-scored with AbNatiV2 VHH2. Under the default AbLang weight (0.3), designs reach AbNatiV2 means of 0.66-0.70 across targets, with tail populations above 0.70 (a common "native-looking" threshold). This is noticeably better than running the same pipeline at AbLang weight 0.1, which is what many open-source defaults use.
 
 **Solubility.** Every design is also post-scored with CamSol. Under the default settings, designs reach CamSol means of 0.73-0.83, with most designs above the +0.5 "highly soluble" threshold. The solubility lift was an unintended side effect of increasing the AbLang weight, not a dedicated optimization — natural antibody sequences tend to avoid hydrophobic patches that adversarial loss-driven designs sometimes stumble into.
 
@@ -187,13 +191,26 @@ The scaffold is a humanized VH3 hybrid derived from **h-NbBCII10** (Vincke et al
 
 ## Citation
 
-If you use this code, please cite the underlying libraries and models:
+If you use this code, please cite the underlying libraries and models.
+
+**Core (both releases):**
 
 - **mosaic**: escalante-bio, <https://github.com/escalante-bio/mosaic>
-- **Protenix**: Chen et al., 2025, <https://github.com/bytedance/Protenix>
-- **AbLang**: Olsen et al., *Bioinformatics* 38(7), 2022, <https://doi.org/10.1093/bioinformatics/btac051>
 - **ESM-C**: EvolutionaryScale, 2024, <https://github.com/evolutionaryscale/esm>
 - **mBER** (framework choice and truncation method): Stenger-Smith et al., *bioRxiv* 10.1101/2025.09.26.678877
+- **h-NbBCII10 framework**: Vincke et al., *J. Biol. Chem.* 284(5):3273-3284, 2009, <https://doi.org/10.1074/jbc.M806889200>
+
+**Used in the original release (`nanocdr3gen.py`):**
+
+- **Protenix** (v1): Chen et al., 2025, <https://github.com/bytedance/Protenix>
+- **AbLang** (v1): Olsen et al., *Bioinformatics* 38(7), 2022, <https://doi.org/10.1093/bioinformatics/btac051>
+
+**Added in the updated pipeline (`current_version/nanocdr3gen_v2_run007_omnifold.py`):**
+
+- **Protenix v2**: ByteDance, 2026, <https://github.com/bytedance/Protenix>
+- **AbLang2** (paired): Olsen et al., *bioRxiv* 2024.02.26.582143, 2024, <https://github.com/oxpig/AbLang2>
+- **AbNatiV2** (per-region nativeness, in-loop loss): Ramon et al., *Nat. Mach. Intell.* 6:74-91, 2024 (V2 update bioRxiv 2025), <https://gitlab.developers.cam.ac.uk/ch/sormanni/abnativ>
+- **OmniLib fold-stability CNN** (in-loop loss): Wan et al., *Nat. Struct. Mol. Biol.* 2026, <https://doi.org/10.1038/s41594-026-01804-9>, <https://github.com/antoinekoehl/omnilib-ml>
 
 ## License
 

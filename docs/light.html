@@ -266,6 +266,27 @@ sup a {
   font-weight: 600;
 }
 
+/* Update callout — May 2026 addition */
+.update-block {
+  margin: 0 0 40px 0;
+  padding: 24px 28px;
+  background: var(--code-bg);
+  border-radius: 8px;
+  border-left: 4px solid var(--accent);
+}
+.update-block .update-label {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.update-block h2 { margin: 0 0 12px 0; font-size: 22px; border: none; padding: 0; }
+.update-block p { margin: 0 0 12px 0; font-size: 15px; }
+.update-block table { font-size: 14px; margin: 16px 0; }
+
 /* Print / PDF styles */
 @page {
   size: A4;
@@ -347,6 +368,25 @@ sup a {
 
   <article class="post-body">
 
+    <div class="update-block">
+      <span class="update-label">Update — May 2026</span>
+      <h2>Pipeline upgraded — new in-loop loss terms</h2>
+      <p>Since this post was written, NanoCDR3Gen has been substantially extended. The original single-file release (<code>nanocdr3gen.py</code>) is preserved unchanged, but the recommended entry point is now <code>current_version/nanocdr3gen_v2_run007_omnifold.py</code>.</p>
+      <p><strong>What's new:</strong> framework switched from the v0.1 humanized VH3 hybrid scaffold to the real <strong>h-NbBCII10</strong> sequence with full IMGT-length CDR masks (CDR1=11, CDR2=8 designable). Protenix v1 → v2 (with CDR3-only paratope), AbLang v1 → AbLang2 (paired), AbNatiV2 per-region nativeness added as an in-loop differentiable loss, and an OmniLib fold-stability CNN added as an in-loop loss (Wan <em>et al.</em>, <em>Nat. Struct. Mol. Biol.</em> 2026). A hot-spot redesign architecture with accept/revert is also available.</p>
+      <p><strong>Latest PD-L1 results</strong> (n=10 exploratory batch across CDR3=12/14/16, May 2026):</p>
+      <table>
+        <thead><tr><th>Metric (scorer)</th><th>mean</th><th>best</th><th>hit-rate</th></tr></thead>
+        <tbody>
+          <tr><td>Protenix v2 iPTM (design-time scorer)</td><td>0.862</td><td>0.943</td><td>7/10 ≥ 0.85</td></tr>
+          <tr><td>AF3 iPTM (independent cross-validator, best-of-5-seeds)</td><td>0.606</td><td>0.860</td><td>2/10 ≥ 0.80</td></tr>
+          <tr><td>AbNatiV2 overall</td><td>+0.589</td><td>+0.634</td><td>—</td></tr>
+          <tr><td>OmniLib P(high stability)</td><td>0.749</td><td>0.961</td><td>7/10 ≥ 0.75</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Honest read.</strong> The update added two in-loop signals (per-region nativeness, fold stability) that did not exist in v0.1. The pipeline produces sequences with strong in-loop scores. AF3 cross-validation on this small batch returns iPTM substantially below Protenix v2 on several designs — a known disagreement on antibody-antigen interfaces. The two AF3 binders in this batch (AF3 iPTM ≥ 0.80) have low OmniLib fold scores; the two highest-fold designs failed AF3. No design in this batch is strong on all four axes simultaneously. Larger batches and per-axis weight calibration are the natural next steps.</p>
+      <p>Full diff in the <a href="https://github.com/Fahad8389/NanoCDR3Gen/blob/main/CHANGELOG.md">CHANGELOG</a>. The original April 2026 post below is unchanged.</p>
+    </div>
+
     <p>Designing nanobodies is an interesting part of the protein design field. I will be honest, I am biased to it more than other fields like antibodies or minibinders. Maybe the reason is I like how selective nanobodies and antibodies can be compared to other proteins. But the antibody field already has many generative models and approved drugs, while nanobodies are shorter in length and still have a lot of untapped potential. So I decided to play around, and this is what it ended up being.</p>
 
     <p>NanoCDR3Gen is a nanobody design pipeline I built on top of Mosaic (escalante-bio's open-source backprop design framework), using a humanized VH3 hybrid framework with IMGT-corrected CDR masks (IMGT being the standard antibody numbering scheme). The core question I wanted to answer: <strong>given a small compute budget, can I land in the same range as the published state of the art on de novo nanobody design while giving attention to nativeness and solubility, to reach good therapeutic candidates and not only binders?</strong></p>
@@ -354,21 +394,21 @@ sup a {
     <p>Three experiments pressure-tested the pipeline.</p>
 
     <ol>
-      <li><strong>AbLang weight, 0.1 vs 0.3.</strong> A paired 103-design study. Means barely move, but the hit rate at the tail lifts 3.5× for 0.3 on AF3 binding (AlphaFold 3 interface predicted TM-score, the field-standard binding confidence metric), 1.8× on independent nativeness (ABN2), and 1.3× on solubility (CamSol) as a free side effect. 0.3 locked as the new default.</li>
+      <li><strong>AbLang weight, 0.1 vs 0.3.</strong> A paired 103-design study. Means barely move, but the hit rate at the tail lifts 3.5× for 0.3 on AF3 binding (AlphaFold 3 interface predicted TM-score, the field-standard binding confidence metric), 1.8× on independent nativeness (AbNatiV2), and 1.3× on solubility (CamSol) as a free side effect. 0.3 locked as the new default.</li>
       <li><strong>CDR1 fixing.</strong> Locked CDR1 to a cropped camelid germline to close the nativeness gap. Binding collapsed by -0.25 mean AF3 iPTM, all four tested targets crashed. Rejected. CDR1 is load-bearing on hard targets.</li>
       <li><strong>Benchmarking against published pipelines.</strong> On PD-L1, 33% AF3 ≥0.80 from 30 designs vs mBER's ~40% (best hotspot, strict filter) from libraries of 2,600-7,900 designs per target. On RSV F (different epitope from RFantibody but same protein and tool class), 27% from 15 designs vs RFantibody's 9,000-design library yielding a best experimental Kd of 1.4 μM. Two separate, honest comparisons; not a head-to-head on the same epitope.</li>
     </ol>
 
     <div class="repo-cta">
       <p>Code and repo: <a href="https://github.com/Fahad8389/nanocdr3gen">github.com/Fahad8389/nanocdr3gen</a></p>
-      <p>All numbers are in-silico AlphaFold / ABN2 / CamSol predictions. No wet-lab validation yet.</p>
+      <p>All numbers are in-silico AlphaFold / AbNatiV2 / CamSol predictions. No wet-lab validation yet.</p>
     </div>
 
     <h2>1. AbLang weight, 0.1 vs 0.3</h2>
 
     <p>AbLang is an antibody language model. Its pseudolikelihood in the loss pushes designs toward sequences that look like the antibodies it was trained on. <strong>Important caveat up front:</strong> AbLang's heavy-chain model is trained on conventional antibody VH sequences, not specifically on camelid VHHs. Nanobody VHH domains are homologous to VH (same fold, VH3 family, shared framework pattern) so the signal transfers, but the model is not VHH-native. I validated every design with AbNatiV2 (a VHH-specific nativeness model), so any AbLang-driven signal gets a second independent check on the correct scale.</p>
 
-    <p>The Mosaic default weight was 0.1. In my prior NanoCDR3Gen runs on RBX1 (the E3 ligase target of the GEM x Adaptyv 2026 binder competition), the ABN2 nativeness mean was 0.666 and only 17% of designs cleared ≥0.70. Fine for a competition. Not fine for therapeutic intent.</p>
+    <p>The Mosaic default weight was 0.1. In my prior NanoCDR3Gen runs on RBX1 (the E3 ligase target of the GEM x Adaptyv 2026 binder competition), the AbNatiV2 nativeness mean was 0.666 and only 17% of designs cleared ≥0.70. Fine for a competition. Not fine for therapeutic intent.</p>
 
     <p>I could not afford a full parameter sweep, so I ran the cheapest test that could falsify the hypothesis: one paired A/B, 0.1 vs 0.3, matched targets, matched CDR3 lengths, matched counts. 103 designs total (48 at 0.1, 55 at 0.3), scored on AF3 iPTM, AbNatiV2, and CamSol.</p>
 
@@ -380,7 +420,7 @@ sup a {
       </thead>
       <tbody>
         <tr><td>AF3 iPTM</td><td>0.293</td><td>0.337</td><td>+0.044</td></tr>
-        <tr><td>ABN2 overall</td><td>0.660</td><td>0.672</td><td>+0.012</td></tr>
+        <tr><td>AbNatiV2 overall</td><td>0.660</td><td>0.672</td><td>+0.012</td></tr>
         <tr><td>CamSol</td><td>0.637</td><td>0.720</td><td>+0.083</td></tr>
       </tbody>
     </table>
@@ -393,20 +433,20 @@ sup a {
       </thead>
       <tbody>
         <tr><td>AF3 ≥ 0.80</td><td>1/48 (2%)</td><td><strong>4/55 (7%)</strong></td><td><strong>3.5×</strong></td></tr>
-        <tr><td>ABN2 ≥ 0.70</td><td>4/48 (8%)</td><td><strong>7/47 (15%)</strong></td><td><strong>1.8×</strong></td></tr>
+        <tr><td>AbNatiV2 ≥ 0.70</td><td>4/48 (8%)</td><td><strong>7/47 (15%)</strong></td><td><strong>1.8×</strong></td></tr>
         <tr><td>CamSol ≥ +0.5</td><td>28/48 (58%)</td><td><strong>36/47 (77%)</strong></td><td><strong>1.3×</strong></td></tr>
       </tbody>
     </table>
 
-    <p><em>Note on the denominators:</em> AF3 was scored on all 103 designs, but ABN2 and CamSol denominators drop to 47 in the 0.3 column because I lost the FASTA sequences for 8 designs from early COVID runs. The 47/47 paired subset is what the ABN2 and CamSol rows above use.</p>
+    <p><em>Note on the denominators:</em> AF3 was scored on all 103 designs, but AbNatiV2 and CamSol denominators drop to 47 in the 0.3 column because I lost the FASTA sequences for 8 designs from early COVID runs. The 47/47 paired subset is what the AbNatiV2 and CamSol rows above use.</p>
 
     <p>The decision to lock 0.3 was made on hit rate at the tail, not means. 4 usable binders vs 1 at the AF3 ≥ 0.80 threshold, and AbNatiV2 (the independent VHH-specific nativeness model, not AbLang) agreed directionally with a 1.8× lift. Solubility came along for free.</p>
 
-    <p>The CamSol lift was the interesting surprise. I pushed AbLang for nativeness, not solubility. Pushing AbLang pulls sequences closer to the conventional antibody VH distribution it was trained on, and those patterns happen to avoid hydrophobic patches. VHHs share the VH framework, so the effect transfers, and CamSol (which is sequence-based and not antibody-specific at all) confirmed it on a fully independent scale. I got a small nativeness bump (+0.012 mean on ABN2 VHH2) and a noticeably larger solubility bump (+0.083 on CamSol) from one weight change.</p>
+    <p>The CamSol lift was the interesting surprise. I pushed AbLang for nativeness, not solubility. Pushing AbLang pulls sequences closer to the conventional antibody VH distribution it was trained on, and those patterns happen to avoid hydrophobic patches. VHHs share the VH framework, so the effect transfers, and CamSol (which is sequence-based and not antibody-specific at all) confirmed it on a fully independent scale. I got a small nativeness bump (+0.012 mean on AbNatiV2 VHH2) and a noticeably larger solubility bump (+0.083 on CamSol) from one weight change.</p>
 
     <h2>2. CDR1 fixing</h2>
 
-    <p>Data from the prior RBX1 NanoCDR3Gen runs showed CDR1 was the weakest nativeness region by a large margin: ABN2 mean around 0.23, versus framework ~0.88 and CDR2 ~0.45. The hypothesis was that locking CDR1 to a real camelid germline would close the nativeness gap for free, since CDR1 is usually described as peripheral to the paratope.</p>
+    <p>Data from the prior RBX1 NanoCDR3Gen runs showed CDR1 was the weakest nativeness region by a large margin: AbNatiV2 mean around 0.23, versus framework ~0.88 and CDR2 ~0.45. The hypothesis was that locking CDR1 to a real camelid germline would close the nativeness gap for free, since CDR1 is usually described as peripheral to the paratope.</p>
 
     <p>I locked CDR1 to <code>GRTFSSY</code>, a 7 aa crop of the IGHV3-3 kinked germline <code>GRTFSSYA</code>, and ran it against four targets at AbLang 0.3. 16 designs vs 9 free-CDR1 baseline designs under matched conditions.</p>
 
@@ -416,8 +456,8 @@ sup a {
       </thead>
       <tbody>
         <tr><td>AF3 iPTM</td><td>0.512</td><td><strong>0.259</strong></td><td><strong>-0.254</strong></td></tr>
-        <tr><td>ABN2 overall</td><td>0.669</td><td>0.674</td><td>+0.004</td></tr>
-        <tr><td>ABN2 CDR1 region</td><td>0.234</td><td>0.296</td><td>+0.062</td></tr>
+        <tr><td>AbNatiV2 overall</td><td>0.669</td><td>0.674</td><td>+0.004</td></tr>
+        <tr><td>AbNatiV2 CDR1 region</td><td>0.234</td><td>0.296</td><td>+0.062</td></tr>
         <tr><td>CamSol</td><td>+0.668</td><td>+0.692</td><td>+0.024</td></tr>
       </tbody>
     </table>
@@ -434,7 +474,7 @@ sup a {
 
     <h3>PD-L1, vs mBER</h3>
 
-    <p>mBER's flagship demo target is PD-L1. They generated libraries of ~2,600 to 7,900 VHHs per target and reported ~40% AF-Multimer iPTM pass rate on the best PD-L1 hotspot under strict filtering. I ran 30 designs at AbLang 0.3, CDR3 lengths 14 and 16, no per-target tuning. Best AF3 iPTM 0.870, ABN2 mean 0.679, CamSol mean 0.804.</p>
+    <p>mBER's flagship demo target is PD-L1. They generated libraries of ~2,600 to 7,900 VHHs per target and reported ~40% AF-Multimer iPTM pass rate on the best PD-L1 hotspot under strict filtering. I ran 30 designs at AbLang 0.3, CDR3 lengths 14 and 16, no per-target tuning. Best AF3 iPTM 0.870, AbNatiV2 mean 0.679, CamSol mean 0.804.</p>
 
     <table>
       <thead>
