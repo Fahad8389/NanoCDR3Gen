@@ -396,6 +396,18 @@ sup a {
       </table>
       <p><em>This isolates the effect of adding the two new in-loop loss terms. Whether the Protenix v2 iPTM lift survives AF3 cross-validation is a separate question — see the n=10 table above. The AbNatiV2 and OmniLib improvements are on the same models in both columns and are independent of any structure scorer.</em></p>
       <p><strong>Honest takeaway.</strong> The two new in-loop signals work on their own metrics. AF3 cross-validation on the full n=10 batch returns iPTM substantially below Protenix v2 on several designs — a known disagreement on antibody-antigen interfaces. The two AF3 binders in the batch have low fold scores; the two best fold-scoring designs failed AF3. No design is strong on all four axes simultaneously. Larger batches and per-axis weight calibration are the natural next steps.</p>
+      <p><strong>Status of v0.1 carry-forward items (the "What's next" and "Honest caveats" lists from the original post):</strong></p>
+      <ul>
+        <li><strong>SPR on top candidates</strong> — ✗ still pending. No wet-lab yet.</li>
+        <li><strong>Proper AbLang sweep (0.1/0.2/0.3/0.5/0.7/1.0)</strong> — ✗ still pending. Pipeline still uses weight 0.3 from the original 2-point test.</li>
+        <li><strong>AbLang not VHH-specific</strong> — ◐ partially addressed. AbLang v1 → AbLang2 (paired, focal loss) — still trained on conventional antibodies. But <strong>AbNatiV2 (VHH-specific nativeness model) is now an in-loop loss</strong>, so a VHH signal directly shapes designs.</li>
+        <li><strong>Dedicated VHH language model</strong> — ◐ partial. AbNatiV2-in-loss covers the nativeness direction; a generative VHH LM is still missing.</li>
+        <li><strong>CDR3 length sweep done properly</strong> — ◐ partial. CDR3 = 12, 14, 16 covered (2 + 6 + 2 designs), not the "20+ per length" originally planned.</li>
+        <li><strong>Selectivity panel</strong> — ✗ pending.</li>
+        <li><strong>Another humanized framework</strong> — ✗ pending. Still h-NbBCII10 only (now the real one, not the v0.1 hybrid).</li>
+        <li><strong>Stability study with NanoMelt</strong> — ◐ NanoMelt itself not run, but the OmniLib fold-stability CNN is now both an in-loop loss and a post-score — different model, same spirit.</li>
+        <li><strong>More runs, bigger batches</strong> — ✗ pending. Latest batch n=10 — smaller than v0.1's n=30 per PD-L1.</li>
+      </ul>
       <p>Full diff in the <a href="https://github.com/Fahad8389/NanoCDR3Gen/blob/main/CHANGELOG.md">CHANGELOG</a>. The original April 2026 post below is unchanged.</p>
     </div>
 
