@@ -393,7 +393,19 @@ sup a {
           <tr><td>OmniLib P(high stability)</td><td>0.749</td><td>0.961</td><td>7/10 ≥ 0.75</td></tr>
         </tbody>
       </table>
-      <p><strong>Honest read.</strong> The update added two in-loop signals (per-region nativeness, fold stability) that did not exist in v0.1. The pipeline produces sequences with strong in-loop scores. AF3 cross-validation on this small batch returns iPTM substantially below Protenix v2 on several designs — a known disagreement on antibody-antigen interfaces. The two AF3 binders in this batch (AF3 iPTM ≥ 0.80) have low OmniLib fold scores; the two highest-fold designs failed AF3. No design in this batch is strong on all four axes simultaneously. Larger batches and per-axis weight calibration are the natural next steps.</p>
+      <p><strong>Effect of the new in-loop losses, holding everything else fixed</strong> (same h-NbBCII10 framework, same Protenix v2, same AbLang2, same ESM-C, n=6 each at CDR3=14):</p>
+      <table>
+        <thead><tr><th>Metric</th><th>Without in-loop AbNatiV2 + OmniLib</th><th>With in-loop AbNatiV2 + OmniLib</th></tr></thead>
+        <tbody>
+          <tr><td>Protenix v2 iPTM mean</td><td>0.729</td><td>0.868</td></tr>
+          <tr><td>Protenix v2 iPTM ≥ 0.85</td><td>2/6 (33%)</td><td>5/6 (83%)</td></tr>
+          <tr><td>AbNatiV2 overall mean</td><td>+0.562</td><td>+0.588</td></tr>
+          <tr><td>OmniLib P(high stability) mean</td><td>0.504</td><td>0.808</td></tr>
+          <tr><td>OmniLib P(high stability) ≥ 0.75</td><td>1/6 (17%)</td><td>5/6 (83%)</td></tr>
+        </tbody>
+      </table>
+      <p><em>This isolates the effect of adding the two new in-loop loss terms. Whether the Protenix v2 iPTM lift survives AF3 cross-validation is a separate question — see the n=10 table above. The AbNatiV2 and OmniLib improvements are on the same models in both columns and are independent of any structure scorer.</em></p>
+      <p><strong>Honest takeaway.</strong> The two new in-loop signals work on their own metrics. AF3 cross-validation on the full n=10 batch returns iPTM substantially below Protenix v2 on several designs — a known disagreement on antibody-antigen interfaces. The two AF3 binders in the batch have low fold scores; the two best fold-scoring designs failed AF3. No design is strong on all four axes simultaneously. Larger batches and per-axis weight calibration are the natural next steps.</p>
       <p>Full diff in the <a href="https://github.com/Fahad8389/NanoCDR3Gen/blob/main/CHANGELOG.md">CHANGELOG</a>. The original April 2026 post below is unchanged.</p>
     </div>
 

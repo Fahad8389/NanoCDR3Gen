@@ -42,6 +42,18 @@ Notes on these numbers:
 - The two AF3 binders in this batch (AF3 iPTM ≥ 0.80) have low OmniLib fold scores; the two highest-fold designs failed AF3 binding. No design in the batch is strong on all four axes simultaneously. Per-axis weight calibration and larger batches are the natural next step.
 - The v0.1 README reported a 33% AF3 iPTM ≥ 0.80 hit rate on PD-L1 from n=30; the current AF3 hit rate is 20% on n=10 (not directly comparable due to small n and different CDR3-length distribution).
 
+### Isolated effect of adding the new in-loop losses (Protenix v2 + AbLang2 + ESM-C held fixed, CDR3=14, n=6 each)
+
+| Metric | Without in-loop AbNatiV2 + OmniLib | With in-loop AbNatiV2 + OmniLib |
+|---|---|---|
+| Protenix v2 iPTM mean | 0.729 | 0.868 |
+| Protenix v2 iPTM ≥ 0.85 | 2/6 (33%) | 5/6 (83%) |
+| AbNatiV2 overall mean | +0.562 | +0.588 |
+| OmniLib P(high stability) mean | 0.504 | 0.808 |
+| OmniLib P(high stability) ≥ 0.75 | 1/6 (17%) | 5/6 (83%) |
+
+This isolates what the new loss terms do on their own metrics. Whether the Protenix v2 iPTM lift survives AF3 cross-validation is a separate question — see the n=10 table above.
+
 ---
 
 ## v0.1 — April 2026

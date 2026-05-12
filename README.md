@@ -40,7 +40,19 @@ Per-CDR3-length breakdown:
 | 14 | 6 | 0.868 | 0.587 | +0.588 | 0.808 |
 | 16 | 2 | 0.906 | 0.800 | +0.575 | 0.487 |
 
-**Honest takeaway.** The update added two in-loop signals (per-region nativeness and fold stability) that did not exist in v0.1. The pipeline produces sequences with strong in-loop scores. AF3 cross-validation on this small batch shows the design-time Protenix v2 iPTM is consistently higher than the AF3 iPTM that AF3 returns for the same designs — a known disagreement on antibody-antigen interfaces. The two AF3 binders (AF3 iPTM ≥ 0.80) in this batch have low fold scores; the two best fold-scoring designs failed AF3 binding. No design in this batch is strong on all four axes simultaneously. Larger batches and per-axis weight calibration are the natural next steps.
+**Effect of the new in-loop losses, holding everything else fixed.** Same real h-NbBCII10 framework, same Protenix v2 design-time scorer, same AbLang2, same ESM-C, same seed; the only thing that changes between the two columns is whether AbNatiV2 and OmniLib are in the loss tree.
+
+| Metric | Without in-loop nativeness + fold (n=6) | With in-loop nativeness + fold (n=6, CDR3=14 subset) |
+|---|---|---|
+| Protenix v2 iPTM mean | 0.729 | 0.868 |
+| Protenix v2 iPTM ≥ 0.85 | 2/6 (33%) | 5/6 (83%) |
+| AbNatiV2 overall mean | +0.562 | +0.588 |
+| OmniLib P(high stability) mean | 0.504 | 0.808 |
+| OmniLib P(high stability) ≥ 0.75 | 1/6 (17%) | 5/6 (83%) |
+
+*This isolates the effect of adding the two new in-loop loss terms. The Protenix v2 iPTM column lifts on the design-time scorer; whether that lift survives AF3 cross-validation is a separate question, addressed in the table above. The AbNatiV2 and OmniLib improvements are on the same models in both columns and are independent of any structure scorer.*
+
+**Honest takeaway.** The two new in-loop signals work on their own metrics. AF3 cross-validation on the full n=10 batch shows the design-time Protenix v2 iPTM does not fully translate to AF3 iPTM — a known disagreement on antibody-antigen interfaces. The two AF3 binders (AF3 iPTM ≥ 0.80) in the n=10 batch have low fold scores; the two best fold-scoring designs failed AF3 binding. No design is strong on all four axes simultaneously. Larger batches and per-axis weight calibration are the natural next steps.
 
 Run with:
 
