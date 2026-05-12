@@ -293,6 +293,60 @@ sup a {
 .update-block p { margin: 0 0 12px 0; font-size: 15px; }
 .update-block table { font-size: 14px; margin: 16px 0; }
 
+/* Loss-tree diagram (May 2026 pipeline) */
+.loss-tree {
+  margin: 24px 0 8px 0;
+  padding: 20px 22px;
+  background: var(--bg);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.loss-tree h3 {
+  margin: 0 0 14px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  border: none;
+  padding: 0;
+}
+.loss-row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+.loss-row:last-of-type { border-bottom: none; }
+.loss-row .weight {
+  flex: 0 0 56px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  line-height: 1.2;
+}
+.loss-row .weight::before { content: "× "; color: var(--text-muted); font-weight: 400; }
+.loss-row .component { flex: 1; }
+.loss-row .component strong { display: block; color: var(--text); font-size: 15px; line-height: 1.4; }
+.loss-row .component em {
+  display: block;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-style: normal;
+  margin-top: 3px;
+  line-height: 1.5;
+}
+.loss-total {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 2px solid var(--accent);
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+.loss-total strong { color: var(--text); }
+
 /* Print / PDF styles */
 @page {
   size: A4;
@@ -406,6 +460,48 @@ sup a {
       </table>
       <p><em>This isolates the effect of adding the two new in-loop loss terms. Whether the Protenix v2 iPTM lift survives AF3 cross-validation is a separate question — see the n=10 table above. The AbNatiV2 and OmniLib improvements are on the same models in both columns and are independent of any structure scorer.</em></p>
       <p><strong>Honest takeaway.</strong> The two new in-loop signals work on their own metrics. AF3 cross-validation on the full n=10 batch returns iPTM substantially below Protenix v2 on several designs — a known disagreement on antibody-antigen interfaces. The two AF3 binders in the batch have low fold scores; the two best fold-scoring designs failed AF3. No design is strong on all four axes simultaneously. Larger batches and per-axis weight calibration are the natural next steps.</p>
+
+      <div class="loss-tree">
+        <h3>Loss tree (May 2026)</h3>
+        <div class="loss-row">
+          <div class="weight">0.1</div>
+          <div class="component">
+            <strong>ESM-C pseudolikelihood</strong>
+            <em>general protein language model, stop-grad</em>
+          </div>
+        </div>
+        <div class="loss-row">
+          <div class="weight">2.0</div>
+          <div class="component">
+            <strong>Protenix v2 (structure prediction)</strong>
+            <em>BinderTargetContact (paratope_idx restricted to CDR3 only) + IPTMLoss + WithinBinderPAE + TargetBinderPAE + BinderTargetPAE + pTMEnergy + PLDDTLoss</em>
+          </div>
+        </div>
+        <div class="loss-row">
+          <div class="weight">0.3</div>
+          <div class="component">
+            <strong>AbLang2 paired pseudolikelihood</strong>
+            <em>antibody language model (Olsen et al., 2024 — Fab paired training, focal loss)</em>
+          </div>
+        </div>
+        <div class="loss-row">
+          <div class="weight">1.0</div>
+          <div class="component">
+            <strong>AbNatiV2 per-region nativeness (in-loop)</strong>
+            <em>VHH-specific nativeness model (Ramon et al.). Per-region weights: CDR1 = 1.0, CDR2 = 0.5, CDR3 = 0.0. Loss = Σ wᵣ·(1 − exp(−MSEᵣ)).</em>
+          </div>
+        </div>
+        <div class="loss-row">
+          <div class="weight">1.0</div>
+          <div class="component">
+            <strong>OmniLib fold-stability CNN (in-loop)</strong>
+            <em>Wan et al., <em>Nat. Struct. Mol. Biol.</em> 2026. Loss = −log P(high stability). JAX port verified numerically against the PyTorch checkpoint.</em>
+          </div>
+        </div>
+        <div class="loss-total">
+          <strong>Σ Total loss</strong> → soft-relaxation via simplex_APGM, followed by gradient_MCMC over the 11 CDR1 + 8 CDR2 + L CDR3 designable positions on the real h-NbBCII10 framework. Framework positions are stop-gradient inside every loss term.
+        </div>
+      </div>
       <p><strong>Status of v0.1 carry-forward items (the "What's next" and "Honest caveats" lists from the original post):</strong></p>
       <ul>
         <li><strong>SPR on top candidates</strong> — ✗ still pending. No wet-lab yet.</li>
